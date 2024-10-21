@@ -15,6 +15,10 @@ Page({
     BluetoothManager.onCharacteristicValueChangeCallback = this.onCharacteristicValueChange.bind(this);
   },
 
+  onShow() {
+    this.openBluetoothAdapter();
+  },
+
   openBluetoothAdapter() {
     this.setData({
       miniArmDevice: null
@@ -109,18 +113,7 @@ Page({
 
   closeBluetoothAdapter() {
     BluetoothManager.closeBluetoothAdapter();
-  },
-
-  // 示例：如何发送数据
-  sendExampleData() {
-    BluetoothManager.sendData([0x01, 0x02, 0x03])
-      .then(() => {
-        console.log('Data sent successfully');
-      })
-      .catch((error) => {
-        console.error('Failed to send data', error);
-      });
-  },
+  }
 });
 
 function inArray(arr, key, val) {

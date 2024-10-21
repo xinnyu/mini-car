@@ -1,3 +1,6 @@
+import BluetoothManager from "../utils/BluetoothManager";
+import DirectionUtil from "../utils/DirectionUtil";
+
 Page({
   data: {
     joystickPosition: { x: 0, y: 0 },
@@ -11,19 +14,23 @@ Page({
     rightTouchId: null,
     rightTouchStartPosition: null,
     joystickDebug: "0, 0",
-    rightRotationDebug: "0 rad"
+    rightRotationDebug: "0 rad",
+    speedLevel: 'low',
+    joystickReady: false,
   },
 
   onLoad() {
     // 延迟执行以确保页面已经旋转到横屏模式
     setTimeout(() => {
       this.updateSystemInfo();
-    }, 500); // 300毫秒的延迟，可以根据实际情况调整
+    }, 500); // 500毫秒的延迟，可以根据实际情况调整
   },
 
   onShow() {
     // 每次页面显示时更新系统信息，以处理可能的屏幕旋转
-    this.updateSystemInfo();
+    setTimeout(() => {
+      this.updateSystemInfo();
+    }, 500); // 500毫秒的延迟，可以根据实际情况调整
   },
 
   updateSystemInfo() {
@@ -36,6 +43,7 @@ Page({
           safeArea: res.safeArea,
           screenWidth: screenWidth,
           screenHeight: screenHeight,
+          joystickReady: true, // 添加这行
         });
         this.initJoystickRect();
       },
@@ -147,10 +155,10 @@ Page({
 
       const ratioX = deltaX / maxRadius;
       const ratioY = -deltaY / maxRadius;
-
+      const { direction, speed } = DirectionUtil.getDirectionAndSpeed(ratioX, ratioY);
       this.setData({
         joystickPosition: { x: deltaX, y: deltaY },
-        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(2)}`
+        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(2)}, ${direction}, 速度：${speed}`
       });
     }
   },
@@ -208,5 +216,19 @@ Page({
       width: this.data.screenWidth * 0.7,
       height: this.data.screenHeight
     };
-  }
+  },
+
+  setSpeedLevel(e) {
+    const level = e.currentTarget.dataset.level;
+    this.setData({ speedLevel: level });
+    // Here you can add logic to actually change the speed of your car
+    console.log(`Speed level set to: ${level}`);
+  },
+
+  goBack: function() {
+    BluetoothManager.closeBluetoothAdapter();
+    wx.navigateBack({
+      delta: 1
+    });
+  },
 });

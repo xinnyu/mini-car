@@ -30,6 +30,7 @@ class BluetoothManager {
   }
 
   openBluetoothAdapter() {
+    this.closeBluetoothAdapter();
     return new Promise((resolve, reject) => {
       wx.openBluetoothAdapter({
         success: (res) => {
@@ -211,6 +212,7 @@ class BluetoothManager {
   }
 
   closeBluetoothAdapter() {
+    this.stopBluetoothDevicesDiscovery();
     wx.closeBluetoothAdapter();
     this._discoveryStarted = false;
   }
@@ -222,6 +224,16 @@ class BluetoothManager {
       dataView.setUint8(i, data[i]);
     }
     return this.writeBLECharacteristicValue(buffer);
+  }
+
+  sendExampleData() {
+    BluetoothManager.sendData([0x01, 0x02, 0x03])
+      .then(() => {
+        console.log('Data sent successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to send data', error);
+      });
   }
 }
 

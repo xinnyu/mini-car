@@ -11,6 +11,12 @@
   width: 160rpx;
   height: 160rpx;
   z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.joystick-area.ready {
+  opacity: 1;
 }
 
 .right-area {
@@ -51,7 +57,7 @@
 
 .debug-info {
   position: absolute;
-  top: 20px;
+  top: 70px;
   left: 20px;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
@@ -63,4 +69,61 @@
 .debug-info text {
   display: block;
   margin-bottom: 5px;
+}
+
+.speed-control-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
+}
+
+.speed-label {
+  color: white;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.speed-control {
+  display: flex;
+  background-color: rgba(22, 33, 62, 0.8);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.speed-option {
+  padding: 10px 30px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.speed-option.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(22, 33, 62, 0.8);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 30;
+  cursor: pointer;
+}
+
+.back-icon {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
 }
