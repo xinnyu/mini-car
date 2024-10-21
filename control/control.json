@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "",
+  "navigationBarHidden": true,
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "pageOrientation": "landscape",
+  "usingComponents": {}
+}

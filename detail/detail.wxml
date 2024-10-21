@@ -1,0 +1,16 @@
+<view class="container">
+  <view class="title">设备详情</view>
+  <view class="device-info">
+    <text>已连接到 {{name}}</text>
+    <view class="operation">
+      <button wx:if="{{canWrite}}" class="write-btn" bindtap="writeBLECharacteristicValue">写数据</button>
+      <button class="disconnect-btn" bindtap="closeBLEConnection">断开连接</button>
+    </view>
+  </view>
+  <view class="characteristics">
+    <view wx:for="{{chs}}" wx:key="index" class="characteristic-item">
+      <view>特性UUID: {{item.uuid}}</view>
+      <view>特性值: {{item.value}}</view>
+    </view>
+  </view>
+</view>

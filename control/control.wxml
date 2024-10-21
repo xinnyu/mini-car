@@ -1,0 +1,26 @@
+<view class="game-container"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+      bindtouchcancel="onTouchEnd">
+  <view class="joystick-area" id="joystickArea" 
+        style="left: {{safeArea.left+10}}px; bottom: {{safeArea.top+30}}px;">
+    <view class="joystick-base">
+      <view class="joystick-stick" 
+            style="transform: translate({{joystickPosition.x}}px, {{joystickPosition.y}}px);">
+      </view>
+    </view>
+  </view>
+  
+  <view class="right-area">
+    <view class="touch-indicator" wx:if="{{rightTouchPosition}}"
+          style="left: {{rightTouchPosition.x}}px; top: {{rightTouchPosition.y}}px;">
+    </view>
+  </view>
+  
+  <!-- 调试信息显示 -->
+  <view class="debug-info">
+    <text>摇杆: {{joystickDebug}}</text>
+    <text>右侧旋转: {{rightRotationDebug}}</text>
+  </view>
+</view>
