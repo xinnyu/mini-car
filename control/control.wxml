@@ -1,4 +1,4 @@
-<view>
+<view class="full-screen-container">
   <view class="game-container"
       bindtouchstart="onTouchStart"
       bindtouchmove="onTouchMove"
@@ -27,7 +27,7 @@
     <!-- 调试信息显示 -->
     <view class="debug-info">
       <text>摇杆: {{joystickDebug}}</text>
-      <text>右侧旋转: {{rightRotationDebug}}</text>
+      <text>旋转: {{rightRotationDebug}}</text>
     </view>
   </view>
   <view class="speed-control-container">

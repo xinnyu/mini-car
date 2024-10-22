@@ -27,6 +27,10 @@ class BluetoothManager {
     this.onConnectedCallback = null;
     this.onDisconnectedCallback = null;
     this.onCharacteristicValueChangeCallback = null;
+    this.lastSendTime = 0;
+    this.throttleInterval = 200; // 200ms throttle interval
+    this.pendingData = null;
+    this.throttleTimer = null;
   }
 
   openBluetoothAdapter() {
@@ -147,7 +151,11 @@ class BluetoothManager {
       deviceId,
       success: (res) => {
         for (let i = 0; i < res.services.length; i++) {
-          if (res.services[i].isPrimary) {
+          // if (res.services[i].isPrimary) {
+          //   this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
+          //   return;
+          // }
+          if (res.services[i].uuid === '00001111-0000-1000-8000-00805F9B34FB') {
             this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
             return;
           }
@@ -157,6 +165,7 @@ class BluetoothManager {
   }
 
   getBLEDeviceCharacteristics(deviceId, serviceId) {
+    console.log(`getBLEDeviceCharacteristics deviceId ${deviceId} serviceId ${serviceId}`);
     wx.getBLEDeviceCharacteristics({
       deviceId,
       serviceId,
@@ -171,11 +180,6 @@ class BluetoothManager {
               characteristicId: item.uuid,
             });
           }
-          if (item.properties.write) {
-            this._deviceId = deviceId;
-            this._serviceId = serviceId;
-            this._characteristicId = item.uuid;
-          }
           if (item.properties.notify || item.properties.indicate) {
             wx.notifyBLECharacteristicValueChange({
               deviceId,
@@ -183,6 +187,10 @@ class BluetoothManager {
               characteristicId: item.uuid,
               state: true,
             });
+          } else if (item.properties.write) {
+            this._deviceId = deviceId;
+            this._serviceId = serviceId;
+            this._characteristicId = item.uuid;
           }
         }
       },
@@ -218,22 +226,44 @@ class BluetoothManager {
   }
 
   sendData(data) {
+    const startPkt = new Uint8ClampedArray(data);
+
     const buffer = new ArrayBuffer(data.length);
     const dataView = new DataView(buffer);
     for (let i = 0; i < data.length; i++) {
       dataView.setUint8(i, data[i]);
     }
-    return this.writeBLECharacteristicValue(buffer);
+    console.log(`Sending data: ${data}, to characteristic: ${this._characteristicId} dataView: ${dataView}`);
+    return this.writeBLECharacteristicValue(startPkt.buffer);
   }
 
-  sendExampleData() {
-    BluetoothManager.sendData([0x01, 0x02, 0x03])
-      .then(() => {
-        console.log('Data sent successfully');
-      })
-      .catch((error) => {
-        console.error('Failed to send data', error);
-      });
+  sendDataThrottled(data) {
+    const currentTime = Date.now();
+    if (currentTime - this.lastSendTime >= this.throttleInterval) {
+      // 如果距离上次发送已经过了足够的时间，立即发送
+      this.lastSendTime = currentTime;
+      return this.sendData(data);
+    } else {
+      // 否则，更新待发送的数据，并确保只有一个定时器在运行
+      this.pendingData = data;
+      if (!this.throttleTimer) {
+        this.throttleTimer = setTimeout(() => {
+          if (this.pendingData) {
+            this.sendData(this.pendingData)
+              .then(() => {
+                console.log('Throttled data sent successfully');
+              })
+              .catch((error) => {
+                console.error('Failed to send throttled data', error);
+              });
+            this.pendingData = null;
+            this.lastSendTime = Date.now();
+          }
+          this.throttleTimer = null;
+        }, this.throttleInterval - (currentTime - this.lastSendTime));
+      }
+      return Promise.resolve(); // 立即解析 promise，不阻塞主线程
+    }
   }
 }
 

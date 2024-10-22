@@ -48,6 +48,11 @@ Page({
         miniArmDevice: device
       });
     }
+    // if (device.name === "BT_ECB1B603EBAB" || device.localName === "BT_ECB1B603EBAB") {
+    //   this.setData({
+    //     miniArmDevice: device
+    //   });
+    // }
   },
 
   createBLEConnection(e) {
@@ -108,6 +113,7 @@ Page({
         value: ab2hex(characteristic.value)
       };
     }
+    console.log(`onCharacteristicValueChange: ${JSON.stringify(data)}`);
     this.setData(data);
   },
 

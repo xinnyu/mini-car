@@ -1,7 +1,15 @@
-.game-container {
-  width: 100vw;
-  height: 100vh;
+.full-screen-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #1a1a2e;
+}
+
+.game-container {
+  width: 100%;
+  height: 100%;
   position: relative;
   overflow: hidden;
 }
@@ -72,7 +80,7 @@
 }
 
 .speed-control-container {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);

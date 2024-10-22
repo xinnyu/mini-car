@@ -14,9 +14,13 @@ Page({
     rightTouchId: null,
     rightTouchStartPosition: null,
     joystickDebug: "0, 0",
-    rightRotationDebug: "0 rad",
+    rightRotationDebug: "0°",
     speedLevel: 'low',
     joystickReady: false,
+    rightTouchStartAngle: 0,
+    currentRotationAngle: 0,
+    rotationDirection: 'none',
+    rotationSpeed: 0,
   },
 
   onLoad() {
@@ -85,8 +89,11 @@ Page({
     for (let touch of e.changedTouches) {
       if (touch.identifier === this.data.joystickTouchId) {
         this.handleJoystickEnd();
+        const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(0, 0, this.data.speedLevel);
+        this.sendBluetoothCommand(bluetoothCommand);
       } else if (touch.identifier === this.data.rightTouchId) {
         this.handleRightAreaEnd();
+        this.sendRotationCommand(this.data.currentRotationAngle, this.data.rotationDirection, this.data.rotationSpeed);
       }
     }
     // 检查是否所有触摸都已结束
@@ -109,7 +116,6 @@ Page({
       rightTouchPosition: null,
       rightTouchId: null,
       rightTouchStartPosition: null,
-      rightRotationDebug: "0 rad"
     });
   },
 
@@ -156,48 +162,84 @@ Page({
       const ratioX = deltaX / maxRadius;
       const ratioY = -deltaY / maxRadius;
       const { direction, speed } = DirectionUtil.getDirectionAndSpeed(ratioX, ratioY);
+      const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(ratioX, ratioY, this.data.speedLevel);
+      const speedRatio = DirectionUtil.getSpeedRatio(this.data.speedLevel);
       this.setData({
         joystickPosition: { x: deltaX, y: deltaY },
-        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(2)}, ${direction}, 速度：${speed}`
+        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(2)}, ${direction}, 速度：${Math.round(speed * speedRatio)}`
       });
+      this.sendBluetoothCommand(bluetoothCommand);
     }
   },
 
   handleRightAreaStart(touch) {
     const rightAreaRect = this.getRightAreaRect();
+    const centerX = rightAreaRect.left + rightAreaRect.width / 2;
+    const centerY = rightAreaRect.top + rightAreaRect.height / 2;
 
-    const relativeX = touch.clientX - rightAreaRect.left;
-    const relativeY = touch.clientY - rightAreaRect.top;
+    const startAngle = this.calculateAngle(centerX, centerY, touch.clientX, touch.clientY);
 
     this.setData({
-      rightTouchPosition: { x: relativeX, y: relativeY },
+      rightTouchPosition: { x: touch.clientX - rightAreaRect.left, y: touch.clientY - rightAreaRect.top },
       rightTouchId: touch.identifier,
-      rightTouchStartPosition: { x: touch.clientX, y: touch.clientY }
+      rightTouchStartAngle: startAngle,
     });
   },
 
   handleRightAreaMove(touch) {
-    const startPos = this.data.rightTouchStartPosition;
     const rightAreaRect = this.getRightAreaRect();
+    const centerX = rightAreaRect.left + rightAreaRect.width / 2;
+    const centerY = rightAreaRect.top + rightAreaRect.height / 2;
 
-    if (startPos) {
-      const deltaX = touch.clientX - startPos.x;
-      const deltaY = touch.clientY - startPos.y;
-      const angle = Math.atan2(deltaY, deltaX);
-      const normalizedAngle = (angle + 2 * Math.PI) % (2 * Math.PI);
-      
-      const relativeX = touch.clientX - rightAreaRect.left;
-      const relativeY = touch.clientY - rightAreaRect.top;
+    const currentAngle = this.calculateAngle(centerX, centerY, touch.clientX, touch.clientY);
+    let deltaAngle = currentAngle - this.data.rightTouchStartAngle;
 
-      this.setData({
-        rightTouchPosition: { x: relativeX, y: relativeY },
-        rightRotationDebug: `${normalizedAngle.toFixed(2)} rad`
-      });
+    // 调整deltaAngle的计算方式，确保向右滑动时角度增加
+    if (deltaAngle > 180) {
+      deltaAngle -= 360;
+    } else if (deltaAngle < -180) {
+      deltaAngle += 360;
     }
+
+    // 反转deltaAngle，使得向右滑动时角度增加
+    deltaAngle = -deltaAngle;
+
+    const newRotationAngle = (this.data.currentRotationAngle + deltaAngle + 360) % 360;
+    const rotationDirection = deltaAngle > 0 ? '顺时针' : (deltaAngle < 0 ? '逆时针' : '无');
+
+    // 计算速度：基于触摸点到中心的距离
+    const touchRadius = Math.sqrt(
+      Math.pow(touch.clientX - centerX, 2) + Math.pow(touch.clientY - centerY, 2)
+    );
+    const maxRadius = Math.min(rightAreaRect.width, rightAreaRect.height) / 2;
+    const rotationSpeed = Math.min(Math.round((touchRadius / maxRadius) * 100), 100);
+
+    this.setData({
+      rightTouchPosition: { x: touch.clientX - rightAreaRect.left, y: touch.clientY - rightAreaRect.top },
+      currentRotationAngle: newRotationAngle,
+      rotationDirection: rotationDirection,
+      rotationSpeed: rotationSpeed,
+      rightTouchStartAngle: currentAngle,
+    });
+    this.updateRightRotationDebug();
+    // 发送旋转命令到蓝牙设备
+    this.sendRotationCommand(this.data.currentRotationAngle, this.data.rotationDirection, this.data.rotationSpeed);
   },
 
   handleRightAreaEnd() {
-    this.resetRightTouch();
+    this.setData({
+      rightTouchPosition: null,
+      rightTouchId: null,
+      rotationDirection: 'none',
+      rotationSpeed: 0,
+    });
+    this.updateRightRotationDebug();
+  },
+
+  updateRightRotationDebug() {
+    this.setData({
+      rightRotationDebug: `角度: ${this.data.currentRotationAngle.toFixed(2)}°, 方向: ${this.data.rotationDirection}, 速度: ${this.data.rotationSpeed}`
+    });
   },
 
   isJoystickArea(touch) {
@@ -231,4 +273,31 @@ Page({
       delta: 1
     });
   },
+
+  calculateAngle(centerX, centerY, touchX, touchY) {
+    const dx = touchX - centerX;
+    const dy = touchY - centerY;
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle < 0) {
+      angle += 360;
+    }
+    return angle;
+  },
+
+  // 新增方法：发送旋转命令到蓝牙设备
+  sendRotationCommand(angle, direction, speed) {
+    // 使用 DirectionUtil 的新方法生成蓝牙命令
+    const command = DirectionUtil.convertToRotationCommand(direction, speed, this.data.speedLevel);
+    this.sendBluetoothCommand(command);
+  },
+
+  sendBluetoothCommand(command) {
+    BluetoothManager.sendDataThrottled(command)
+      .then(() => {
+        console.log('Bluetooth command sent successfully');
+      }).catch((error) => {
+        console.error(`Failed to send command ${command}`, error);
+      });
+  },
+
 });
