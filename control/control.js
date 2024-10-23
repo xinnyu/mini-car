@@ -21,20 +21,21 @@ Page({
     currentRotationAngle: 0,
     rotationDirection: 'none',
     rotationSpeed: 0,
+    bluetoothDebugInfo: ['待发送...                   '],
   },
 
   onLoad() {
     // 延迟执行以确保页面已经旋转到横屏模式
     setTimeout(() => {
       this.updateSystemInfo();
-    }, 500); // 500毫秒的延迟，可以根据实际情况调整
+    }, 800); // 500毫秒的延迟，可以根据实际情况调整
   },
 
   onShow() {
     // 每次页面显示时更新系统信息，以处理可能的屏幕旋转
     setTimeout(() => {
       this.updateSystemInfo();
-    }, 500); // 500毫秒的延迟，可以根据实际情况调整
+    }, 800); // 500毫秒的延迟，可以根据实际情况调整
   },
 
   updateSystemInfo() {
@@ -295,9 +296,15 @@ Page({
     BluetoothManager.sendDataThrottled(command)
       .then(() => {
         console.log('Bluetooth command sent successfully');
+        this.updateBluetoothDebugInfo(`发送成功: ${command}`);
       }).catch((error) => {
         console.error(`Failed to send command ${command}`, error);
+        this.updateBluetoothDebugInfo(`发送失败: ${command}, 原因: ${error.message}`);
       });
   },
 
+  updateBluetoothDebugInfo(message) {
+    let newInfo = [message, ...this.data.bluetoothDebugInfo].slice(0, 3);
+    this.setData({ bluetoothDebugInfo: newInfo });
+  },
 });

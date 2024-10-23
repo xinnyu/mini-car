@@ -1,4 +1,5 @@
 class DirectionUtil {
+
   static getDirection(x, y) {
     // 定义方向常量
     const FORWARD = '前';

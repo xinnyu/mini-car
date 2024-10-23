@@ -25,9 +25,14 @@
     </view>
     
     <!-- 调试信息显示 -->
-    <view class="debug-info">
+    <view class="debug-info left-debug">
       <text>摇杆: {{joystickDebug}}</text>
       <text>旋转: {{rightRotationDebug}}</text>
+    </view>
+    
+    <!-- 新增右侧蓝牙调试信息 -->
+    <view class="debug-info right-debug">
+      <text wx:for="{{bluetoothDebugInfo}}" wx:key="index">{{item}}</text>
     </view>
   </view>
   <view class="speed-control-container">

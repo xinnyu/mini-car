@@ -66,17 +66,26 @@
 .debug-info {
   position: absolute;
   top: 70px;
-  left: 20px;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
   padding: 10px;
   border-radius: 5px;
   font-size: 14px;
+  max-width: 200px;
+}
+
+.left-debug {
+  left: 20px;
+}
+
+.right-debug {
+  right: 20px;
 }
 
 .debug-info text {
   display: block;
   margin-bottom: 5px;
+  word-wrap: break-word;
 }
 
 .speed-control-container {

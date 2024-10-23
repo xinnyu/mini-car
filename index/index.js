@@ -43,20 +43,17 @@ Page({
   },
 
   onDeviceFound(device) {
-    if (device.name === "Mini-Arm" || device.localName === "Mini-Arm") {
+    if (device.name === BluetoothManager.DEVICE_NAME || device.localName === BluetoothManager.DEVICE_NAME) {
+      console.log('onDeviceFound deviceId', device.deviceId);
       this.setData({
         miniArmDevice: device
       });
     }
-    // if (device.name === "BT_ECB1B603EBAB" || device.localName === "BT_ECB1B603EBAB") {
-    //   this.setData({
-    //     miniArmDevice: device
-    //   });
-    // }
   },
 
   createBLEConnection(e) {
     const { deviceId, name } = e.currentTarget.dataset;
+    console.log('createBLEConnection deviceId', deviceId);
     BluetoothManager.createBLEConnection(deviceId, name)
       .then(() => {
         wx.navigateTo({

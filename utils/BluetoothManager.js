@@ -17,7 +17,12 @@ function ab2hex(buffer) {
   return hexArr.join('');
 }
 
+const DEVICE_NAME = 'BT_ECB1B603EBAB';
+const SERVICE_UUID = '0000FFF0-0000-1000-8000-00805F9B34FB';
+const CHARACTERISTIC_UUID = '0000FFF2-0000-1000-8000-00805F9B34FB';
+
 class BluetoothManager {
+
   constructor() {
     this._discoveryStarted = false;
     this._deviceId = '';
@@ -31,6 +36,9 @@ class BluetoothManager {
     this.throttleInterval = 200; // 200ms throttle interval
     this.pendingData = null;
     this.throttleTimer = null;
+    this.DEVICE_NAME = DEVICE_NAME;
+    this.SERVICE_UUID = SERVICE_UUID;
+    this.CHARACTERISTIC_UUID = CHARACTERISTIC_UUID;
   }
 
   openBluetoothAdapter() {
@@ -111,7 +119,7 @@ class BluetoothManager {
       wx.createBLEConnection({
         deviceId,
         success: (res) => {
-          console.log("BLE connection success");
+          console.log("BLE connection success id: ", deviceId);
           this._deviceId = deviceId;
           this.getBLEDeviceServices(deviceId);
           if (this.onConnectedCallback) {
@@ -155,7 +163,12 @@ class BluetoothManager {
           //   this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
           //   return;
           // }
-          if (res.services[i].uuid === '00001111-0000-1000-8000-00805F9B34FB') {
+          console.log(`getBLEDeviceServices: ${res.services[i].uuid}`);
+          // if (res.services[i].uuid === '00001111-0000-1000-8000-00805F9B34FB') {
+          //   this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
+          //   return;
+          // }
+          if (res.services[i].uuid === SERVICE_UUID) {
             this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
             return;
           }
@@ -191,6 +204,7 @@ class BluetoothManager {
             this._deviceId = deviceId;
             this._serviceId = serviceId;
             this._characteristicId = item.uuid;
+            console.log('getBLEDeviceCharacteristics write', item);
           }
         }
       },
@@ -200,6 +214,7 @@ class BluetoothManager {
     });
     
     wx.onBLECharacteristicValueChange((characteristic) => {
+      console.log('onBLECharacteristicValueChange', characteristic);
       if (this.onCharacteristicValueChangeCallback) {
         this.onCharacteristicValueChangeCallback(characteristic);
       }
@@ -213,6 +228,7 @@ class BluetoothManager {
         serviceId: this._serviceId,
         characteristicId: this._characteristicId,
         value: buffer,
+        writeType: 'write',
         success: resolve,
         fail: reject
       });
@@ -226,15 +242,13 @@ class BluetoothManager {
   }
 
   sendData(data) {
-    const startPkt = new Uint8ClampedArray(data);
-
     const buffer = new ArrayBuffer(data.length);
     const dataView = new DataView(buffer);
     for (let i = 0; i < data.length; i++) {
       dataView.setUint8(i, data[i]);
     }
-    console.log(`Sending data: ${data}, to characteristic: ${this._characteristicId} dataView: ${dataView}`);
-    return this.writeBLECharacteristicValue(startPkt.buffer);
+    console.log(`Sending data: ${data}, to characteristic: ${this._characteristicId} deviceId: ${this._deviceId} serviceId: ${this._serviceId}`);
+    return this.writeBLECharacteristicValue(buffer);
   }
 
   sendDataThrottled(data) {
@@ -268,3 +282,4 @@ class BluetoothManager {
 }
 
 export default new BluetoothManager();
+export { DEVICE_NAME, SERVICE_UUID, CHARACTERISTIC_UUID };
