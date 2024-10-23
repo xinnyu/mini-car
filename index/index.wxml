@@ -34,7 +34,7 @@ module.exports.len = function(arr) {
     </view>
 
     <view class="no-device" wx:else>
-      <text>未找到 mini-arm 设备</text>
+      <text>未找到海豹麦轮小车设备</text>
       <text>请确保设备已开启并在范围内</text>
     </view>
   </view>

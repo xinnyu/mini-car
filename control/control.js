@@ -1,4 +1,4 @@
-import BluetoothManager from "../utils/BluetoothManager";
+import BluetoothManager, { log } from "../utils/BluetoothManager";
 import DirectionUtil from "../utils/DirectionUtil";
 
 Page({
@@ -265,7 +265,7 @@ Page({
     const level = e.currentTarget.dataset.level;
     this.setData({ speedLevel: level });
     // Here you can add logic to actually change the speed of your car
-    console.log(`Speed level set to: ${level}`);
+    log(`Speed level set to: `, level);
   },
 
   goBack: function() {
@@ -293,14 +293,9 @@ Page({
   },
 
   sendBluetoothCommand(command) {
-    BluetoothManager.sendDataThrottled(command)
-      .then(() => {
-        console.log('Bluetooth command sent successfully');
-        this.updateBluetoothDebugInfo(`发送成功: ${command}`);
-      }).catch((error) => {
-        console.error(`Failed to send command ${command}`, error);
-        this.updateBluetoothDebugInfo(`发送失败: ${command}, 原因: ${error.message}`);
-      });
+    BluetoothManager.sendDataThrottled(command, (message) => {
+      this.updateBluetoothDebugInfo(message);
+    });
   },
 
   updateBluetoothDebugInfo(message) {

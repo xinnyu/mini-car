@@ -1,4 +1,4 @@
-import BluetoothManager from '../utils/BluetoothManager';
+import BluetoothManager, { log, logError } from '../utils/BluetoothManager';
 
 Page({
   data: {
@@ -25,26 +25,26 @@ Page({
     });
     BluetoothManager.openBluetoothAdapter()
       .then(() => {
-        console.log('Bluetooth adapter opened successfully');
+        log('Bluetooth adapter opened successfully');
       })
       .catch((error) => {
-        console.error('Failed to open Bluetooth adapter', error);
+        logError('Failed to open Bluetooth adapter', error);
       });
   },
 
   getBluetoothAdapterState() {
     BluetoothManager.getBluetoothAdapterState()
       .then((res) => {
-        console.log('Bluetooth adapter state:', res);
+        log('Bluetooth adapter state:', res);
       })
       .catch((error) => {
-        console.error('Failed to get Bluetooth adapter state', error);
+        logError('Failed to get Bluetooth adapter state', error);
       });
   },
 
   onDeviceFound(device) {
     if (device.name === BluetoothManager.DEVICE_NAME || device.localName === BluetoothManager.DEVICE_NAME) {
-      console.log('onDeviceFound deviceId', device.deviceId);
+      log('onDeviceFound deviceId', { deviceId: device.deviceId });
       this.setData({
         miniArmDevice: device
       });
@@ -53,7 +53,7 @@ Page({
 
   createBLEConnection(e) {
     const { deviceId, name } = e.currentTarget.dataset;
-    console.log('createBLEConnection deviceId', deviceId);
+    log('createBLEConnection deviceId', { deviceId });
     BluetoothManager.createBLEConnection(deviceId, name)
       .then(() => {
         wx.navigateTo({
@@ -61,6 +61,7 @@ Page({
         });
       })
       .catch((error) => {
+        logError('Failed to create BLE connection', error);
         wx.showToast({
           title: '连接失败，请重试',
           icon: 'none',
@@ -72,10 +73,10 @@ Page({
   closeBLEConnection() {
     BluetoothManager.closeBLEConnection()
       .then(() => {
-        console.log('BLE connection closed successfully');
+        log('BLE connection closed successfully');
       })
       .catch((error) => {
-        console.error('Failed to close BLE connection', error);
+        logError('Failed to close BLE connection', error);
       });
   },
 
@@ -85,6 +86,7 @@ Page({
       deviceId,
       name,
     });
+    log('Device connected', { deviceId, name });
   },
 
   onDisconnected() {
@@ -94,6 +96,7 @@ Page({
       name: '',
       chs: [],
     });
+    log('Device disconnected');
   },
 
   onCharacteristicValueChange(characteristic) {
@@ -110,12 +113,13 @@ Page({
         value: ab2hex(characteristic.value)
       };
     }
-    console.log(`onCharacteristicValueChange: ${JSON.stringify(data)}`);
+    log('onCharacteristicValueChange', data);
     this.setData(data);
   },
 
   closeBluetoothAdapter() {
     BluetoothManager.closeBluetoothAdapter();
+    log('Bluetooth adapter closed');
   }
 });
 

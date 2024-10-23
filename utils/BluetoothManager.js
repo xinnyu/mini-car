@@ -21,6 +21,23 @@ const DEVICE_NAME = 'BT_ECB1B603EBAB';
 const SERVICE_UUID = '0000FFF0-0000-1000-8000-00805F9B34FB';
 const CHARACTERISTIC_UUID = '0000FFF2-0000-1000-8000-00805F9B34FB';
 
+const __DEV__ = true;
+
+function log(message, data = null) {
+  if (__DEV__) {  // 只在开发环境下输出日志
+    console.log(`[${new Date().toISOString()}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  }
+}
+
+function logError(message, error = null) {
+  if (__DEV__) {  // 只在开发环境下输出日志
+    console.error(
+      `[${new Date().toISOString()}] ${message}`, 
+      error ? (error.stack || error.message || JSON.stringify(error)) : ''
+    );
+  }
+}
+
 class BluetoothManager {
 
   constructor() {
@@ -46,15 +63,15 @@ class BluetoothManager {
     return new Promise((resolve, reject) => {
       wx.openBluetoothAdapter({
         success: (res) => {
-          console.log('openBluetoothAdapter success', res);
+          log('openBluetoothAdapter success', res);
           this.startBluetoothDevicesDiscovery();
           resolve(res);
         },
         fail: (res) => {
-          console.log('openBluetoothAdapter fail', res);
+          logError('openBluetoothAdapter fail', res);
           if (res.errCode === 10001) {
             wx.onBluetoothAdapterStateChange((res) => {
-              console.log('onBluetoothAdapterStateChange', res);
+              log('onBluetoothAdapterStateChange', res);
               if (res.available) {
                 this.startBluetoothDevicesDiscovery();
               }
@@ -70,7 +87,7 @@ class BluetoothManager {
     return new Promise((resolve, reject) => {
       wx.getBluetoothAdapterState({
         success: (res) => {
-          console.log('getBluetoothAdapterState', res);
+          log('getBluetoothAdapterState', res);
           if (res.discovering) {
             this.onBluetoothDeviceFound();
           } else if (res.available) {
@@ -91,7 +108,7 @@ class BluetoothManager {
     wx.startBluetoothDevicesDiscovery({
       allowDuplicatesKey: true,
       success: (res) => {
-        console.log('startBluetoothDevicesDiscovery success', res);
+        log('startBluetoothDevicesDiscovery success', res);
         this.onBluetoothDeviceFound();
       },
     });
@@ -119,7 +136,7 @@ class BluetoothManager {
       wx.createBLEConnection({
         deviceId,
         success: (res) => {
-          console.log("BLE connection success id: ", deviceId);
+          log("BLE connection success", { deviceId, name });
           this._deviceId = deviceId;
           this.getBLEDeviceServices(deviceId);
           if (this.onConnectedCallback) {
@@ -128,7 +145,7 @@ class BluetoothManager {
           resolve(res);
         },
         fail: (err) => {
-          console.error("BLE connection failed", err);
+          logError("BLE connection failed", err);
           reject(err);
         }
       });
@@ -163,7 +180,7 @@ class BluetoothManager {
           //   this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
           //   return;
           // }
-          console.log(`getBLEDeviceServices: ${res.services[i].uuid}`);
+          log(`getBLEDeviceServices: ${res.services[i].uuid}`);
           // if (res.services[i].uuid === '00001111-0000-1000-8000-00805F9B34FB') {
           //   this.getBLEDeviceCharacteristics(deviceId, res.services[i].uuid);
           //   return;
@@ -178,12 +195,12 @@ class BluetoothManager {
   }
 
   getBLEDeviceCharacteristics(deviceId, serviceId) {
-    console.log(`getBLEDeviceCharacteristics deviceId ${deviceId} serviceId ${serviceId}`);
+    log(`getBLEDeviceCharacteristics deviceId ${deviceId} serviceId ${serviceId}`);
     wx.getBLEDeviceCharacteristics({
       deviceId,
       serviceId,
       success: (res) => {
-        console.log('getBLEDeviceCharacteristics success', res.characteristics);
+        log('getBLEDeviceCharacteristics success', res.characteristics);
         for (let i = 0; i < res.characteristics.length; i++) {
           let item = res.characteristics[i];
           if (item.properties.read) {
@@ -204,17 +221,17 @@ class BluetoothManager {
             this._deviceId = deviceId;
             this._serviceId = serviceId;
             this._characteristicId = item.uuid;
-            console.log('getBLEDeviceCharacteristics write', item);
+            log('getBLEDeviceCharacteristics write', item);
           }
         }
       },
       fail(res) {
-        console.error('getBLEDeviceCharacteristics', res);
+        logError('getBLEDeviceCharacteristics', res);
       }
     });
     
     wx.onBLECharacteristicValueChange((characteristic) => {
-      console.log('onBLECharacteristicValueChange', characteristic);
+      log('onBLECharacteristicValueChange', characteristic);
       if (this.onCharacteristicValueChangeCallback) {
         this.onCharacteristicValueChangeCallback(characteristic);
       }
@@ -247,30 +264,31 @@ class BluetoothManager {
     for (let i = 0; i < data.length; i++) {
       dataView.setUint8(i, data[i]);
     }
-    console.log(`Sending data: ${data}, to characteristic: ${this._characteristicId} deviceId: ${this._deviceId} serviceId: ${this._serviceId}`);
+    log('Sending data', {
+      data: data,
+      characteristicId: this._characteristicId,
+      deviceId: this._deviceId,
+      serviceId: this._serviceId
+    });
     return this.writeBLECharacteristicValue(buffer);
   }
 
-  sendDataThrottled(data) {
+  sendDataThrottled(data, updateCallback) {
     const currentTime = Date.now();
     if (currentTime - this.lastSendTime >= this.throttleInterval) {
       // 如果距离上次发送已经过了足够的时间，立即发送
       this.lastSendTime = currentTime;
-      return this.sendData(data);
+      return this.sendDataAndUpdate(data, updateCallback);
     } else {
       // 否则，更新待发送的数据，并确保只有一个定时器在运行
       this.pendingData = data;
+      this.pendingCallback = updateCallback;
       if (!this.throttleTimer) {
         this.throttleTimer = setTimeout(() => {
           if (this.pendingData) {
-            this.sendData(this.pendingData)
-              .then(() => {
-                console.log('Throttled data sent successfully');
-              })
-              .catch((error) => {
-                console.error('Failed to send throttled data', error);
-              });
+            this.sendDataAndUpdate(this.pendingData, this.pendingCallback);
             this.pendingData = null;
+            this.pendingCallback = null;
             this.lastSendTime = Date.now();
           }
           this.throttleTimer = null;
@@ -279,7 +297,23 @@ class BluetoothManager {
       return Promise.resolve(); // 立即解析 promise，不阻塞主线程
     }
   }
+
+  sendDataAndUpdate(data, updateCallback) {
+    return this.sendData(data)
+      .then(() => {
+        log('Bluetooth command sent successfully');
+        if (updateCallback) {
+          updateCallback(`发送成功: ${data}`);
+        }
+      })
+      .catch((error) => {
+        logError(`Failed to send command ${data}`, error);
+        if (updateCallback) {
+          updateCallback(`发送失败: ${data}, code: ${error.errCode}`);
+        }
+      });
+  }
 }
 
 export default new BluetoothManager();
-export { DEVICE_NAME, SERVICE_UUID, CHARACTERISTIC_UUID };
+export { DEVICE_NAME, SERVICE_UUID, CHARACTERISTIC_UUID, log, logError };
