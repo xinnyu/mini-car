@@ -8,39 +8,36 @@ module.exports.len = function(arr) {
 }
 </wxs>
 <view class="container">
-  <!-- <view class="header">
-    <text class="title">设备连接</text>
-  </view> -->
+  <view class="safe-area-top"></view>
 
   <view class="content">
-    <view class="search-area">
-      <button class="search-button" bindtap="openBluetoothAdapter">搜索设备</button>
-    </view>
-
-    <view class="device-area" wx:if="{{miniArmDevice}}">
-      <view class="device-card" bindtap="createBLEConnection" data-device-id="{{miniArmDevice.deviceId}}" data-name="{{miniArmDevice.name || miniArmDevice.localName}}">
-        <view class="device-icon">
-          <image src="/resource/mini-arm-icon1.png" mode="aspectFit"></image>
-        </view>
-        <view class="device-info">
-          <text class="device-name">{{miniArmDevice.name || miniArmDevice.localName}}</text>
-          <text class="device-signal">信号强度: {{miniArmDevice.RSSI}}dBm({{utils.max(0, miniArmDevice.RSSI + 100)}}%)</text>
-          <text class="device-signal">UUID: {{miniArmDevice.deviceId}}</text>
-        </view>
-        <view class="connect-icon">
-          <text class="iconfont icon-right"></text>
+    <scroll-view scroll-y class="device-list">
+      <view class="device-area" wx:if="{{devices.length > 0}}">
+        <view class="device-card" wx:for="{{devices}}" wx:key="deviceId" bindtap="createBLEConnection" data-device-id="{{item.deviceId}}" data-name="{{item.name || item.localName}}">
+          <view class="device-icon">
+            <image src="/resource/mini-arm-icon1.png" mode="aspectFit"></image>
+          </view>
+          <view class="device-info">
+            <text class="device-name">{{item.name || item.localName}}</text>
+            <text class="device-signal">信号强度: {{item.RSSI}}dBm({{utils.max(0, item.RSSI + 100)}}%)</text>
+            <text class="device-signal">UUID: {{item.deviceId}}</text>
+          </view>
+          <view class="connect-icon">
+            <text class="iconfont icon-right"></text>
+          </view>
         </view>
       </view>
-    </view>
 
-    <view class="no-device" wx:else>
-      <text>未找到海豹麦轮小车设备</text>
-      <text>请确保设备已开启并在范围内</text>
-    </view>
+      <view class="no-device" wx:if="{{devices.length === 0}}">
+        <text>未找到海豹麦轮小车设备</text>
+        <text>请确保设备已开启并在范围内</text>
+      </view>
+    </scroll-view>
   </view>
 
-  <!-- <view class="footer">
-    <button class="action-button" bindtap="stopBluetoothDevicesDiscovery">停止搜索</button>
-    <button class="action-button" bindtap="closeBluetoothAdapter">重启服务</button>
-  </view> -->
+  <view class="footer safe-area-bottom">
+    <button class="search-button {{isSearching ? 'searching' : ''}}" bindtap="toggleSearch">
+      {{isSearching ? '停止搜索' : '搜索设备'}}
+    </button>
+  </view>
 </view>

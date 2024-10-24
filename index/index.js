@@ -5,7 +5,7 @@ Page({
     devices: [],
     connected: false,
     chs: [],
-    miniArmDevice: null,
+    isSearching: false,
   },
 
   onLoad() {
@@ -19,23 +19,41 @@ Page({
     this.openBluetoothAdapterReal();
   },
 
-  openBluetoothAdapter() {
+  toggleSearch() {
     wx.vibrateShort({
       type: 'light'
+    });
+    if (this.data.isSearching) {
+      this.stopSearch();
+    } else {
+      this.startSearch();
+    }
+  },
+
+  startSearch() {
+    this.setData({
+      isSearching: true,
+      devices: []
     });
     this.openBluetoothAdapterReal();
   },
 
-  openBluetoothAdapterReal() {
+  stopSearch() {
     this.setData({
-      miniArmDevice: null
+      isSearching: false
     });
+    BluetoothManager.stopBluetoothDevicesDiscovery();
+  },
+
+  openBluetoothAdapterReal() {
     BluetoothManager.openBluetoothAdapter()
       .then(() => {
         log('Bluetooth adapter opened successfully');
+        this.setData({ isSearching: true });
       })
       .catch((error) => {
         logError('Failed to open Bluetooth adapter', error);
+        this.setData({ isSearching: false });
       });
   },
 
@@ -50,11 +68,16 @@ Page({
   },
 
   onDeviceFound(device) {
-    if (device.name === BluetoothManager.DEVICE_NAME || device.localName === BluetoothManager.DEVICE_NAME) {
+    if (device.name === BluetoothManager.DEVICE_NAME || device.localName === BluetoothManager.DEVICE_NAME || true) {
       log('onDeviceFound deviceId', { deviceId: device.deviceId });
-      this.setData({
-        miniArmDevice: device
-      });
+      const devices = this.data.devices;
+      const idx = devices.findIndex(d => d.deviceId === device.deviceId);
+      if (idx === -1) {
+        devices.push(device);
+      } else {
+        devices[idx] = device;
+      }
+      this.setData({ devices });
     }
   },
 
