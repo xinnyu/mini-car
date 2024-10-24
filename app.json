@@ -1,13 +1,12 @@
 {
   "pages": [
     "index/index",
-    "control/control",
-    "detail/detail"
+    "control/control"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "麦轮小车",
+    "navigationBarTitleText": "海豹麦轮小车",
     "navigationBarTextStyle": "black"
   }
 }

@@ -301,7 +301,7 @@ class BluetoothManager {
   sendDataAndUpdate(data, updateCallback) {
     return this.sendData(data)
       .then(() => {
-        log('Bluetooth command sent successfully');
+        log('Bluetooth command sent successfully', false);
         if (updateCallback) {
           updateCallback(`发送成功: ${data}`);
         }
@@ -309,7 +309,7 @@ class BluetoothManager {
       .catch((error) => {
         logError(`Failed to send command ${data}`, error);
         if (updateCallback) {
-          updateCallback(`发送失败: ${data}, code: ${error.errCode}`);
+          updateCallback(`发送失败: ${data}, code: ${error.errCode}`, true);
         }
       });
   }

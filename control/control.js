@@ -21,7 +21,7 @@ Page({
     currentRotationAngle: 0,
     rotationDirection: 'none',
     rotationSpeed: 0,
-    bluetoothDebugInfo: ['待发送...                   '],
+    bluetoothDebugInfo: ['待发送...'],
   },
 
   onLoad() {
@@ -262,6 +262,9 @@ Page({
   },
 
   setSpeedLevel(e) {
+    wx.vibrateShort({
+      type: 'light'  // 使用轻度震动类型
+    });
     const level = e.currentTarget.dataset.level;
     this.setData({ speedLevel: level });
     // Here you can add logic to actually change the speed of your car
@@ -269,6 +272,9 @@ Page({
   },
 
   goBack: function() {
+    wx.vibrateShort({
+      type: 'light'  // 使用轻度震动类型
+    });
     BluetoothManager.closeBluetoothAdapter();
     wx.navigateBack({
       delta: 1
@@ -293,13 +299,16 @@ Page({
   },
 
   sendBluetoothCommand(command) {
-    BluetoothManager.sendDataThrottled(command, (message) => {
-      this.updateBluetoothDebugInfo(message);
+    wx.vibrateShort({
+      type: 'light'  // 使用轻度震动类型
+    });
+    BluetoothManager.sendDataThrottled(command, (message, isError) => {
+      this.updateBluetoothDebugInfo(message, isError);
     });
   },
 
-  updateBluetoothDebugInfo(message) {
-    let newInfo = [message, ...this.data.bluetoothDebugInfo].slice(0, 3);
-    this.setData({ bluetoothDebugInfo: newInfo });
+  updateBluetoothDebugInfo(message, isError = false) {
+    let newInfo = [{ message, isError }, ...this.data.bluetoothDebugInfo].slice(0, 3);
+    this.setData({ bluetoothDebugInfo: newInfo });    
   },
 });

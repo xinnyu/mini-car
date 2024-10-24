@@ -86,6 +86,12 @@
   display: block;
   margin-bottom: 5px;
   word-wrap: break-word;
+  line-height: 1.4;
+  padding: 3px 0;
+}
+
+.debug-info .error {
+  color: #ff4d4f;
 }
 
 .speed-control-container {
@@ -137,10 +143,4 @@
   align-items: center;
   z-index: 30;
   cursor: pointer;
-}
-
-.back-icon {
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
 }

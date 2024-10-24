@@ -16,10 +16,17 @@ Page({
   },
 
   onShow() {
-    this.openBluetoothAdapter();
+    this.openBluetoothAdapterReal();
   },
 
   openBluetoothAdapter() {
+    wx.vibrateShort({
+      type: 'light'
+    });
+    this.openBluetoothAdapterReal();
+  },
+
+  openBluetoothAdapterReal() {
     this.setData({
       miniArmDevice: null
     });
@@ -52,6 +59,9 @@ Page({
   },
 
   createBLEConnection(e) {
+    wx.vibrateShort({
+      type: 'light'
+    });
     const { deviceId, name } = e.currentTarget.dataset;
     log('createBLEConnection deviceId', { deviceId });
     BluetoothManager.createBLEConnection(deviceId, name)

@@ -6,7 +6,7 @@
       bindtouchcancel="onTouchEnd">
     <!-- 添加返回按钮 -->
     <view class="back-button" bindtap="goBack">
-      <text class="back-icon">←</text>
+      <icon class="icon-small" type="cancel" size="24" color="#C9C9C9"></icon>
     </view>
     
     <view class="joystick-area {{joystickReady ? 'ready' : ''}}" id="joystickArea" 
@@ -30,9 +30,8 @@
       <text>旋转: {{rightRotationDebug}}</text>
     </view>
     
-    <!-- 新增右侧蓝牙调试信息 -->
     <view class="debug-info right-debug">
-      <text wx:for="{{bluetoothDebugInfo}}" wx:key="index">{{item}}</text>
+      <text wx:for="{{bluetoothDebugInfo}}" wx:key="index" class="{{item.isError ? 'error' : ''}}">{{item.message}}</text>
     </view>
   </view>
   <view class="speed-control-container">

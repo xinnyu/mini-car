@@ -20,7 +20,7 @@ module.exports.len = function(arr) {
     <view class="device-area" wx:if="{{miniArmDevice}}">
       <view class="device-card" bindtap="createBLEConnection" data-device-id="{{miniArmDevice.deviceId}}" data-name="{{miniArmDevice.name || miniArmDevice.localName}}">
         <view class="device-icon">
-          <image src="/path/to/mini-arm-icon.png" mode="aspectFit"></image>
+          <image src="/resource/mini-arm-icon1.png" mode="aspectFit"></image>
         </view>
         <view class="device-info">
           <text class="device-name">{{miniArmDevice.name || miniArmDevice.localName}}</text>
