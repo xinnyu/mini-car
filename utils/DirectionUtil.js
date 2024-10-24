@@ -114,10 +114,10 @@ class DirectionUtil {
     
     // 设置旋转方向
     switch (direction) {
-      case '逆时针':
+      case 'left':
         command[5] = 0x01;
         break;
-      case '顺时针':
+      case 'right':
         command[5] = 0x02;
         break;
       case 'none':

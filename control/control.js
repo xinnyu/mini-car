@@ -21,7 +21,7 @@ Page({
     currentRotationAngle: 0,
     rotationDirection: 'none',
     rotationSpeed: 0,
-    bluetoothDebugInfo: ['待发送...'],
+    bluetoothDebugInfo: [{ isError : false, message : '连接成功!'}],
   },
 
   onLoad() {
@@ -206,7 +206,7 @@ Page({
     deltaAngle = -deltaAngle;
 
     const newRotationAngle = (this.data.currentRotationAngle + deltaAngle + 360) % 360;
-    const rotationDirection = deltaAngle > 0 ? '顺时针' : (deltaAngle < 0 ? '逆时针' : '无');
+    const rotationDirection = deltaAngle > 0 ? 'right' : (deltaAngle < 0 ? 'left' : 'none');
 
     // 计算速度：基于触摸点到中心的距离
     const touchRadius = Math.sqrt(
@@ -238,8 +238,9 @@ Page({
   },
 
   updateRightRotationDebug() {
+    const speedRatio = DirectionUtil.getSpeedRatio(this.data.speedLevel);
     this.setData({
-      rightRotationDebug: `角度: ${this.data.currentRotationAngle.toFixed(2)}°, 方向: ${this.data.rotationDirection}, 速度: ${this.data.rotationSpeed}`
+      rightRotationDebug: `${this.data.currentRotationAngle.toFixed(2)}°, 方向: ${this.data.rotationDirection}, 速度: ${Math.round(this.data.rotationSpeed * speedRatio)}`
     });
   },
 

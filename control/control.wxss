@@ -71,7 +71,7 @@
   padding: 10px;
   border-radius: 5px;
   font-size: 14px;
-  max-width: 200px;
+  max-width: 250px;
 }
 
 .left-debug {
@@ -80,11 +80,12 @@
 
 .right-debug {
   right: 20px;
+  top: 60px;
 }
 
 .debug-info text {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 0px;
   word-wrap: break-word;
   line-height: 1.4;
   padding: 3px 0;
