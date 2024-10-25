@@ -258,13 +258,19 @@ Page({
     deltaAngle = -deltaAngle;
 
     const newRotationAngle = (this.data.currentRotationAngle + deltaAngle + 360) % 360;
-    const rotationDirection = deltaAngle > 0 ? 'right' : (deltaAngle < 0 ? 'left' : 'none');
+    
+    // 引入阈值，只有当角度变化超过阈值时才改变方向
+    const angleThreshold = 5; // 可以根据需要调整这个值
+    let rotationDirection = this.data.rotationDirection;
+    if (Math.abs(deltaAngle) > angleThreshold) {
+      rotationDirection = deltaAngle > 0 ? 'right' : 'left';
+    }
 
     // 计算速度：基于触摸点到中心的距离
     const touchRadius = Math.sqrt(
       Math.pow(touch.clientX - centerX, 2) + Math.pow(touch.clientY - centerY, 2)
     );
-    const maxRadius = Math.min(rightAreaRect.width, rightAreaRect.height) / 2;
+    const maxRadius = Math.min(rightAreaRect.width, rightAreaRect.height) / 3;
     const rotationSpeed = Math.min(Math.round((touchRadius / maxRadius) * 100), 100);
 
     this.setData({
