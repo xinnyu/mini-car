@@ -100,9 +100,9 @@ class DirectionUtil {
   static getSpeedRatio(speedLevel) {
     switch (speedLevel) {
       case 'low':
-        return 0.3;
+        return 0.5;
       case 'medium':
-        return 0.6;
+        return 0.7;
       case 'high':
         return 1.0;
       default:
