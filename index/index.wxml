@@ -13,14 +13,14 @@ module.exports.len = function(arr) {
   <view class="content">
     <scroll-view scroll-y class="device-list">
       <view class="device-area" wx:if="{{devices.length > 0}}">
-        <view class="device-card" wx:for="{{devices}}" wx:key="deviceId" bindtap="createBLEConnection" data-device-id="{{item.deviceId}}" data-name="{{item.name || item.localName}}">
+        <view class="device-card" wx:for="{{devices}}" wx:key="id" bindtap="createBLEConnection" data-device-id="{{item.id}}" data-name="{{item.name || item.localName}}">
           <view class="device-icon">
-            <image src="/resource/mini-arm-icon1.png" mode="aspectFit"></image>
+            <image src="{{item.isCar ? '/resource/mini-arm-icon1.png' : '/resource/mini-arm-icon1.png'}}" mode="aspectFit"></image>
           </view>
           <view class="device-info">
             <text class="device-name">{{item.name || item.localName}}</text>
-            <text class="device-signal">信号强度: {{item.RSSI}}dBm({{utils.max(0, item.RSSI + 100)}}%)</text>
-            <text class="device-signal">UUID: {{item.deviceId}}</text>
+            <text class="device-signal">信号强度: {{item.rssi}}dBm({{utils.max(0, item.rssi + 100)}}%)</text>
+            <text class="device-signal">UUID: {{item.id}}</text>
           </view>
           <view class="connect-icon">
             <text class="iconfont icon-right"></text>

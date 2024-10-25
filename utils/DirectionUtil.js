@@ -1,3 +1,20 @@
+const __DEV__ = true;
+
+function log(message, data = null) {
+  if (__DEV__) {  // 只在开发环境下输出日志
+    console.log(`[${new Date().toISOString()}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+  }
+}
+
+function logError(message, error = null) {
+  if (__DEV__) {  // 只在开发环境下输出日志
+    console.error(
+      `[${new Date().toISOString()}] ${message}`, 
+      error ? (error.stack || error.message || JSON.stringify(error)) : ''
+    );
+  }
+}
+
 class DirectionUtil {
 
   static getDirection(x, y) {
@@ -136,3 +153,4 @@ class DirectionUtil {
 }
 
 export default DirectionUtil;
+export { log, logError };

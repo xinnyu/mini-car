@@ -31,7 +31,7 @@
     </view>
     
     <view class="debug-info right-debug">
-      <text wx:for="{{bluetoothDebugInfo}}" wx:key="index" class="{{item.isError ? 'error' : ''}}">{{item.message}}</text>
+      <text wx:for="{{bluetoothDebugInfo}}" wx:key="index" class="{{item.isError ? 'error' : 'success'}}">{{item.message}}</text>
     </view>
   </view>
   <view class="speed-control-container">

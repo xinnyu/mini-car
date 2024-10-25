@@ -1,5 +1,6 @@
-import BluetoothManager, { log } from "../utils/BluetoothManager";
-import DirectionUtil from "../utils/DirectionUtil";
+import DirectionUtil, { log, logError } from "../utils/DirectionUtil";
+const ecUI = require('../utils/ecUI.js')
+const ecBLE = require('../utils/ecBLE.js')
 
 Page({
   data: {
@@ -22,15 +23,39 @@ Page({
     rotationDirection: 'none',
     rotationSpeed: 0,
     bluetoothDebugInfo: [{ isError : false, message : '连接成功!'}],
+    textRevData: '',
+    commandQueue: [],
+    isProcessingQueue: false,
   },
 
   onLoad() {
     // 延迟执行以确保页面已经旋转到横屏模式
     setTimeout(() => {
       this.updateSystemInfo();
-    }, 800); // 500毫秒的延迟，可以根据实际情况调整
+    }, 800); // 800毫秒的延迟，可以根据实际情况调整
+    // on disconnect
+    ecBLE.onBLEConnectionStateChange(() => {
+      ecUI.showModal('提示', '设备断开连接');
+      this.updateBluetoothDebugInfo('设备断开连接', true);
+    })
+    // receive data
+    ecBLE.onBLECharacteristicValueChange((str, strHex) => {
+      let data =
+          this.data.textRevData +
+          this.dateFormat('[hh:mm:ss,S]:', new Date()) +
+          (true ? strHex.replace(/[0-9a-fA-F]{2}/g, ' $&') : str) +
+          '\r\n'
+      log('receive data', data);
+      this.updateBluetoothDebugInfo(data, false);
+      this.setData({ textRevData: data });
+    });
   },
 
+  onUnload() {
+    ecBLE.onBLEConnectionStateChange(() => { })
+    ecBLE.onBLECharacteristicValueChange(() => { })
+    ecBLE.closeBLEConnection()
+  },
   onShow() {
     // 每次页面显示时更新系统信息，以处理可能的屏幕旋转
     setTimeout(() => {
@@ -133,7 +158,34 @@ Page({
       this.moveJoystick(touch);
     }
   },
-
+  dateFormat(fmt, date) {
+    let o = {
+        'M+': date.getMonth() + 1, //月份
+        'd+': date.getDate(), //日
+        'h+': date.getHours(), //小时
+        'm+': date.getMinutes(), //分
+        's+': date.getSeconds(), //秒
+        'q+': Math.floor((date.getMonth() + 3) / 3), //季度
+        S: date.getMilliseconds(), //毫秒
+    }
+    if (/(y+)/.test(fmt))
+        fmt = fmt.replace(
+            RegExp.$1,
+            (date.getFullYear() + '').substr(4 - RegExp.$1.length)
+        )
+    for (var k in o)
+        if (new RegExp('(' + k + ')').test(fmt)) {
+            // console.log(RegExp.$1.length)
+            // console.log(o[k])
+            fmt = fmt.replace(
+                RegExp.$1,
+                RegExp.$1.length == 1
+                    ? (o[k] + '').padStart(3, '0')
+                    : ('00' + o[k]).substr(('' + o[k]).length)
+            )
+        }
+    return fmt
+  },
   handleJoystickEnd() {
     this.setData({
       joystickActive: false,
@@ -276,7 +328,7 @@ Page({
     wx.vibrateShort({
       type: 'light'  // 使用轻度震动类型
     });
-    BluetoothManager.closeBluetoothAdapter();
+    ecBLE.closeBLEConnection();
     wx.navigateBack({
       delta: 1
     });
@@ -292,7 +344,7 @@ Page({
     return angle;
   },
 
-  // 新增方法：发送旋转命令到蓝牙设备
+  // 发送旋转命令到蓝牙设备
   sendRotationCommand(angle, direction, speed) {
     // 使用 DirectionUtil 的新方法生成蓝牙命令
     const command = DirectionUtil.convertToRotationCommand(direction, speed, this.data.speedLevel);
@@ -301,10 +353,48 @@ Page({
 
   sendBluetoothCommand(command) {
     wx.vibrateShort({
-      type: 'light'  // 使用轻度震动类型
+      type: 'light'
     });
-    BluetoothManager.sendDataThrottled(command, (message, isError) => {
-      this.updateBluetoothDebugInfo(message, isError);
+    
+    // 将新命令添加到队列
+    this.data.commandQueue.push(command);
+    
+    // 如果队列没有在处理中，开始处理
+    if (!this.data.isProcessingQueue) {
+      this.processCommandQueue();
+    }
+  },
+
+  processCommandQueue() {
+    if (this.data.commandQueue.length === 0) {
+      this.setData({ isProcessingQueue: false });
+      return;
+    }
+
+    this.setData({ isProcessingQueue: true });
+
+    // 获取队列中的最后一个命令（最新的命令）
+    const latestCommand = this.data.commandQueue[this.data.commandQueue.length - 1];
+    
+    // 清空队列
+    this.data.commandQueue = [];
+
+    ecBLE.writeBLECharacteristicHexValue(latestCommand).then((res) => {
+      if (res.ok) {
+        this.updateBluetoothDebugInfo(`发送成功: ${latestCommand}`);
+      } else {
+        this.updateBluetoothDebugInfo(`发送失败: ${res.errMsg} code: ${res.errCode}`, true);
+      }
+    })
+    .catch((error) => {
+      console.error(`Failed to send command ${latestCommand}`, error);
+      this.updateBluetoothDebugInfo(`发送失败: ${latestCommand} code: ${error.errCode}`, true);
+    })
+    .finally(() => {
+      // 200ms 后处理下一个命令
+      setTimeout(() => {
+        this.processCommandQueue();
+      }, 200);
     });
   },
 

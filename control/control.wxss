@@ -95,6 +95,10 @@
   color: #ff4d4f;
 }
 
+.debug-info .success {
+  color: hsl(123, 100%, 65%);
+}
+
 .speed-control-container {
   position: fixed;
   top: 20px;
