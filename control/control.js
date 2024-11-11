@@ -1,6 +1,6 @@
 import DirectionUtil, { log, logError } from "../utils/DirectionUtil";
-const ecUI = require('../utils/ecUI.js')
-const ecBLE = require('../utils/ecBLE.js')
+const ecUI = require("../utils/ecUI.js");
+const ecBLE = require("../utils/ecBLE.js");
 
 Page({
   data: {
@@ -16,14 +16,14 @@ Page({
     rightTouchStartPosition: null,
     joystickDebug: "0, 0",
     rightRotationDebug: "0°",
-    speedLevel: 'low',
+    speedLevel: "high",
     joystickReady: false,
     rightTouchStartAngle: 0,
     currentRotationAngle: 0,
-    rotationDirection: 'none',
+    rotationDirection: "none",
     rotationSpeed: 0,
-    bluetoothDebugInfo: [{ isError : false, message : '连接成功!'}],
-    textRevData: '',
+    bluetoothDebugInfo: [{ isError: false, message: "连接成功!" }],
+    textRevData: "",
     commandQueue: [],
     isProcessingQueue: false,
   },
@@ -35,26 +35,26 @@ Page({
     }, 800); // 800毫秒的延迟，可以根据实际情况调整
     // on disconnect
     ecBLE.onBLEConnectionStateChange(() => {
-      ecUI.showModal('提示', '设备断开连接');
-      this.updateBluetoothDebugInfo('设备断开连接', true);
-    })
+      ecUI.showModal("提示", "设备断开连接");
+      this.updateBluetoothDebugInfo("设备断开连接", true);
+    });
     // receive data
     ecBLE.onBLECharacteristicValueChange((str, strHex) => {
       let data =
-          this.data.textRevData +
-          this.dateFormat('[hh:mm:ss,S]:', new Date()) +
-          (true ? strHex.replace(/[0-9a-fA-F]{2}/g, ' $&') : str) +
-          '\r\n'
-      log('receive data', data);
+        this.data.textRevData +
+        this.dateFormat("[hh:mm:ss,S]:", new Date()) +
+        (true ? strHex.replace(/[0-9a-fA-F]{2}/g, " $&") : str) +
+        "\r\n";
+      log("receive data", data);
       this.updateBluetoothDebugInfo(data, false);
       this.setData({ textRevData: data });
     });
   },
 
   onUnload() {
-    ecBLE.onBLEConnectionStateChange(() => { })
-    ecBLE.onBLECharacteristicValueChange(() => { })
-    ecBLE.closeBLEConnection()
+    ecBLE.onBLEConnectionStateChange(() => {});
+    ecBLE.onBLECharacteristicValueChange(() => {});
+    ecBLE.closeBLEConnection();
   },
   onShow() {
     // 每次页面显示时更新系统信息，以处理可能的屏幕旋转
@@ -82,7 +82,7 @@ Page({
 
   initJoystickRect() {
     const query = wx.createSelectorQuery();
-    query.select('#joystickArea').boundingClientRect();
+    query.select("#joystickArea").boundingClientRect();
     query.exec((res) => {
       if (res[0]) {
         this.setData({ joystickRect: res[0] });
@@ -115,11 +115,19 @@ Page({
     for (let touch of e.changedTouches) {
       if (touch.identifier === this.data.joystickTouchId) {
         this.handleJoystickEnd();
-        const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(0, 0, this.data.speedLevel);
+        const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(
+          0,
+          0,
+          this.data.speedLevel
+        );
         this.sendBluetoothCommand(bluetoothCommand);
       } else if (touch.identifier === this.data.rightTouchId) {
         this.handleRightAreaEnd();
-        this.sendRotationCommand(this.data.currentRotationAngle, this.data.rotationDirection, this.data.rotationSpeed);
+        this.sendRotationCommand(
+          this.data.currentRotationAngle,
+          this.data.rotationDirection,
+          this.data.rotationSpeed
+        );
       }
     }
     // 检查是否所有触摸都已结束
@@ -138,7 +146,7 @@ Page({
   },
 
   resetRightTouch() {
-    this.setData({ 
+    this.setData({
       rightTouchPosition: null,
       rightTouchId: null,
       rightTouchStartPosition: null,
@@ -146,9 +154,9 @@ Page({
   },
 
   handleJoystickStart(touch) {
-    this.setData({ 
+    this.setData({
       joystickActive: true,
-      joystickTouchId: touch.identifier
+      joystickTouchId: touch.identifier,
     });
     this.moveJoystick(touch);
   },
@@ -160,44 +168,44 @@ Page({
   },
   dateFormat(fmt, date) {
     let o = {
-        'M+': date.getMonth() + 1, //月份
-        'd+': date.getDate(), //日
-        'h+': date.getHours(), //小时
-        'm+': date.getMinutes(), //分
-        's+': date.getSeconds(), //秒
-        'q+': Math.floor((date.getMonth() + 3) / 3), //季度
-        S: date.getMilliseconds(), //毫秒
-    }
+      "M+": date.getMonth() + 1, //月份
+      "d+": date.getDate(), //日
+      "h+": date.getHours(), //小时
+      "m+": date.getMinutes(), //分
+      "s+": date.getSeconds(), //秒
+      "q+": Math.floor((date.getMonth() + 3) / 3), //季度
+      S: date.getMilliseconds(), //毫秒
+    };
     if (/(y+)/.test(fmt))
-        fmt = fmt.replace(
-            RegExp.$1,
-            (date.getFullYear() + '').substr(4 - RegExp.$1.length)
-        )
+      fmt = fmt.replace(
+        RegExp.$1,
+        (date.getFullYear() + "").substr(4 - RegExp.$1.length)
+      );
     for (var k in o)
-        if (new RegExp('(' + k + ')').test(fmt)) {
-            // console.log(RegExp.$1.length)
-            // console.log(o[k])
-            fmt = fmt.replace(
-                RegExp.$1,
-                RegExp.$1.length == 1
-                    ? (o[k] + '').padStart(3, '0')
-                    : ('00' + o[k]).substr(('' + o[k]).length)
-            )
-        }
-    return fmt
+      if (new RegExp("(" + k + ")").test(fmt)) {
+        // console.log(RegExp.$1.length)
+        // console.log(o[k])
+        fmt = fmt.replace(
+          RegExp.$1,
+          RegExp.$1.length == 1
+            ? (o[k] + "").padStart(3, "0")
+            : ("00" + o[k]).substr(("" + o[k]).length)
+        );
+      }
+    return fmt;
   },
   handleJoystickEnd() {
     this.setData({
       joystickActive: false,
       joystickPosition: { x: 0, y: 0 },
       joystickTouchId: null,
-      joystickDebug: "0, 0"
+      joystickDebug: "0, 0",
     });
   },
 
   moveJoystick(touch) {
     const rect = this.data.joystickRect;
-    
+
     if (rect) {
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -214,83 +222,60 @@ Page({
 
       const ratioX = deltaX / maxRadius;
       const ratioY = -deltaY / maxRadius;
-      const { direction, speed } = DirectionUtil.getDirectionAndSpeed(ratioX, ratioY);
-      const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(ratioX, ratioY, this.data.speedLevel);
+      const { direction, speed } = DirectionUtil.getDirectionAndSpeed(
+        ratioX,
+        ratioY
+      );
+      const bluetoothCommand = DirectionUtil.convertToBluetoothCommand(
+        ratioX,
+        ratioY,
+        this.data.speedLevel
+      );
       const speedRatio = DirectionUtil.getSpeedRatio(this.data.speedLevel);
       this.setData({
         joystickPosition: { x: deltaX, y: deltaY },
-        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(2)}, ${direction}, 速度：${Math.round(speed * speedRatio)}`
+        joystickDebug: `${ratioX.toFixed(2)}, ${ratioY.toFixed(
+          2
+        )}, ${direction}, 速度：${Math.round(speed * speedRatio)}`,
       });
       this.sendBluetoothCommand(bluetoothCommand);
     }
   },
 
   handleRightAreaStart(touch) {
-    const rightAreaRect = this.getRightAreaRect();
-    const centerX = rightAreaRect.left + rightAreaRect.width / 2;
-    const centerY = rightAreaRect.top + rightAreaRect.height / 2;
-
-    const startAngle = this.calculateAngle(centerX, centerY, touch.clientX, touch.clientY);
-
     this.setData({
-      rightTouchPosition: { x: touch.clientX - rightAreaRect.left, y: touch.clientY - rightAreaRect.top },
       rightTouchId: touch.identifier,
-      rightTouchStartAngle: startAngle,
+      previousTouchPosition: { x: touch.clientX, y: touch.clientY },
     });
   },
 
   handleRightAreaMove(touch) {
-    const rightAreaRect = this.getRightAreaRect();
-    const centerX = rightAreaRect.left + rightAreaRect.width / 2;
-    const centerY = rightAreaRect.top + rightAreaRect.height / 2;
+    const deltaX = touch.clientX - this.data.previousTouchPosition.x;
 
-    const currentAngle = this.calculateAngle(centerX, centerY, touch.clientX, touch.clientY);
-    let deltaAngle = currentAngle - this.data.rightTouchStartAngle;
+    let rotationDirection = "none";
+    let rotationSpeed = 0;
 
-    // 调整deltaAngle的计算方式，确保向右滑动时角度增加
-    if (deltaAngle > 180) {
-      deltaAngle -= 360;
-    } else if (deltaAngle < -180) {
-      deltaAngle += 360;
+    if (deltaX !== 0) {
+      rotationDirection = deltaX > 0 ? "right" : "left";
+      rotationSpeed = Math.min(Math.abs(deltaX * 6), 100); // 放大 deltaX 以增大速度变化
     }
-
-    // 反转deltaAngle，使得向右滑动时角度增加
-    deltaAngle = -deltaAngle;
-
-    const newRotationAngle = (this.data.currentRotationAngle + deltaAngle + 360) % 360;
-    
-    // 引入阈值，只有当角度变化超过阈值时才改变方向
-    const angleThreshold = 5; // 可以根据需要调整这个值
-    let rotationDirection = this.data.rotationDirection;
-    if (Math.abs(deltaAngle) > angleThreshold) {
-      rotationDirection = deltaAngle > 0 ? 'right' : 'left';
-    }
-
-    // 计算速度：基于触摸点到中心的距离
-    const touchRadius = Math.sqrt(
-      Math.pow(touch.clientX - centerX, 2) + Math.pow(touch.clientY - centerY, 2)
-    );
-    const maxRadius = Math.min(rightAreaRect.width, rightAreaRect.height) / 3;
-    const rotationSpeed = Math.min(Math.round((touchRadius / maxRadius) * 100), 100);
 
     this.setData({
-      rightTouchPosition: { x: touch.clientX - rightAreaRect.left, y: touch.clientY - rightAreaRect.top },
-      currentRotationAngle: newRotationAngle,
       rotationDirection: rotationDirection,
       rotationSpeed: rotationSpeed,
-      rightTouchStartAngle: currentAngle,
+      previousTouchPosition: { x: touch.clientX, y: touch.clientY },
     });
+
     this.updateRightRotationDebug();
-    // 发送旋转命令到蓝牙设备
-    this.sendRotationCommand(this.data.currentRotationAngle, this.data.rotationDirection, this.data.rotationSpeed);
+    this.sendRotationCommand(0, rotationDirection, rotationSpeed);
   },
 
   handleRightAreaEnd() {
     this.setData({
-      rightTouchPosition: null,
       rightTouchId: null,
-      rotationDirection: 'none',
+      rotationDirection: "none",
       rotationSpeed: 0,
+      previousTouchPosition: null,
     });
     this.updateRightRotationDebug();
   },
@@ -298,15 +283,21 @@ Page({
   updateRightRotationDebug() {
     const speedRatio = DirectionUtil.getSpeedRatio(this.data.speedLevel);
     this.setData({
-      rightRotationDebug: `${this.data.currentRotationAngle.toFixed(2)}°, 方向: ${this.data.rotationDirection}, 速度: ${Math.round(this.data.rotationSpeed * speedRatio)}`
+      rightRotationDebug: `方向: ${
+        this.data.rotationDirection
+      }, 速度: ${Math.round(this.data.rotationSpeed * speedRatio)}`,
     });
   },
 
   isJoystickArea(touch) {
     const rect = this.data.joystickRect;
     if (rect) {
-      return touch.clientX >= rect.left && touch.clientX <= rect.right &&
-             touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+      return (
+        touch.clientX >= rect.left &&
+        touch.clientX <= rect.right &&
+        touch.clientY >= rect.top &&
+        touch.clientY <= rect.bottom
+      );
     }
     return false;
   },
@@ -316,13 +307,13 @@ Page({
       left: this.data.screenWidth * 0.3,
       top: 0,
       width: this.data.screenWidth * 0.7,
-      height: this.data.screenHeight
+      height: this.data.screenHeight,
     };
   },
 
   setSpeedLevel(e) {
     wx.vibrateShort({
-      type: 'light'  // 使用轻度震动类型
+      type: "light", // 使用轻度震动类型
     });
     const level = e.currentTarget.dataset.level;
     this.setData({ speedLevel: level });
@@ -330,13 +321,13 @@ Page({
     log(`Speed level set to: `, level);
   },
 
-  goBack: function() {
+  goBack: function () {
     wx.vibrateShort({
-      type: 'light'  // 使用轻度震动类型
+      type: "light", // 使用轻度震动类型
     });
     ecBLE.closeBLEConnection();
     wx.navigateBack({
-      delta: 1
+      delta: 1,
     });
   },
 
@@ -353,18 +344,22 @@ Page({
   // 发送旋转命令到蓝牙设备
   sendRotationCommand(angle, direction, speed) {
     // 使用 DirectionUtil 的新方法生成蓝牙命令
-    const command = DirectionUtil.convertToRotationCommand(direction, speed, this.data.speedLevel);
+    const command = DirectionUtil.convertToRotationCommand(
+      direction,
+      speed,
+      this.data.speedLevel
+    );
     this.sendBluetoothCommand(command);
   },
 
   sendBluetoothCommand(command) {
     wx.vibrateShort({
-      type: 'light'
+      type: "light",
     });
-    
+
     // 将新命令添加到队列
     this.data.commandQueue.push(command);
-    
+
     // 如果队列没有在处理中，开始处理
     if (!this.data.isProcessingQueue) {
       this.processCommandQueue();
@@ -380,32 +375,44 @@ Page({
     this.setData({ isProcessingQueue: true });
 
     // 获取队列中的最后一个命令（最新的命令）
-    const latestCommand = this.data.commandQueue[this.data.commandQueue.length - 1];
-    
+    const latestCommand =
+      this.data.commandQueue[this.data.commandQueue.length - 1];
+
     // 清空队列
     this.data.commandQueue = [];
 
-    ecBLE.writeBLECharacteristicHexValue(latestCommand).then((res) => {
-      if (res.ok) {
-        this.updateBluetoothDebugInfo(`发送成功: ${latestCommand}`);
-      } else {
-        this.updateBluetoothDebugInfo(`发送失败: ${res.errMsg} code: ${res.errCode}`, true);
-      }
-    })
-    .catch((error) => {
-      console.error(`Failed to send command ${latestCommand}`, error);
-      this.updateBluetoothDebugInfo(`发送失败: ${latestCommand} code: ${error.errCode}`, true);
-    })
-    .finally(() => {
-      // 200ms 后处理下一个命令
-      setTimeout(() => {
-        this.processCommandQueue();
-      }, 200);
-    });
+    ecBLE
+      .writeBLECharacteristicHexValue(latestCommand)
+      .then((res) => {
+        if (res.ok) {
+          this.updateBluetoothDebugInfo(`发送成功: ${latestCommand}`);
+        } else {
+          this.updateBluetoothDebugInfo(
+            `发送失败: ${res.errMsg} code: ${res.errCode}`,
+            true
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(`Failed to send command ${latestCommand}`, error);
+        this.updateBluetoothDebugInfo(
+          `发送失败: ${latestCommand} code: ${error.errCode}`,
+          true
+        );
+      })
+      .finally(() => {
+        // 200ms 后处理下一个命令
+        setTimeout(() => {
+          this.processCommandQueue();
+        }, 200);
+      });
   },
 
   updateBluetoothDebugInfo(message, isError = false) {
-    let newInfo = [{ message, isError }, ...this.data.bluetoothDebugInfo].slice(0, 3);
-    this.setData({ bluetoothDebugInfo: newInfo });    
+    let newInfo = [{ message, isError }, ...this.data.bluetoothDebugInfo].slice(
+      0,
+      3
+    );
+    this.setData({ bluetoothDebugInfo: newInfo });
   },
 });
