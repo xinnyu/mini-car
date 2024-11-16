@@ -124,4 +124,11 @@ Page({
         },
       });
   },
+  onShareAppMessage() {
+    return {
+      title: '海豹卖轮小车',
+      path: '/index/index',
+      imageUrl: '/resource/mini-arm-icon.png'
+    };
+  },
 });

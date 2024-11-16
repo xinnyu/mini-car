@@ -150,6 +150,76 @@ class DirectionUtil {
     
     return command;
   }
+
+  static calculateAngle(x, y) {
+    if (x === 0 && y === 0) {
+      return 0; // 停止/无控制
+    } else {
+      let angle = Math.atan2(-x, y) * (180 / Math.PI);
+      if (angle < 0) {
+        angle += 360;
+      }
+      angle = Math.round(angle);
+      if (angle === 0) {
+        angle = 360;
+      }
+      return angle; // 角度在 1-360 之间的整数
+    }
+  }
+
+  static convertToCombinedCommand(x, y, rotation, rotationSpeed, speedLevel) {
+    const command = new Uint8Array(8);
+
+    // 设置包头
+    command[0] = 0xA5;
+    command[1] = 0xA5;
+
+    // 设置 cmd
+    command[2] = 0x03;
+
+    // 计算角度
+    const angle = this.calculateAngle(x, y);
+
+    // 设置角度
+    if (angle === 0) {
+      // 角度为 0 时，第四位和第五位为 0x00 0x00
+      command[3] = 0x00; // 高字节
+      command[4] = 0x00; // 低字节
+    } else {
+      // 角度在 1-360，转换为高字节和低字节
+      command[3] = (angle >> 8) & 0xFF; // 高���节
+      command[4] = angle & 0xFF;        // 低字节
+    }
+
+    // 计算速度
+    const speed = this.getSpeed(x, y);
+    const speedRatio = this.getSpeedRatio(speedLevel);
+    const adjustedSpeed = Math.round(speed * speedRatio);
+    command[5] = adjustedSpeed;
+
+    // 设置旋转方向
+    switch (rotation) {
+      case 'left':
+        command[6] = 0x01;
+        break;
+      case 'right':
+        command[6] = 0x02;
+        break;
+      default:
+        command[6] = 0x00; // 停止/无控制
+    }
+
+    // 计算旋转角度，将 0-100 映射为 0-90°
+    const rotationAngle = Math.round(rotationSpeed * 0.9);
+    command[7] = rotationAngle;
+
+    // 如果速度为 0，但是有旋转控制，则将速度设置为最大
+    if (command[6] !== 0 && command[7] !== 0 && speed === 0) {
+      command[5] = Math.round(speedRatio * 100);
+    }
+
+    return command;
+  }
 }
 
 export default DirectionUtil;
