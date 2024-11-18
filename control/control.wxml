@@ -3,7 +3,7 @@
       bindtouchstart="onTouchStart"
       bindtouchmove="onTouchMove"
       bindtouchend="onTouchEnd"
-      bindtouchcancel="onTouchEnd">
+      bindtouchcancel="onTouchCancel">
     <!-- 添加返回按钮 -->
     <view class="back-button" bindtap="goBack">
       <icon class="icon-small" type="cancel" size="24" color="#C9C9C9"></icon>

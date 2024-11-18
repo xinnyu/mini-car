@@ -28,6 +28,9 @@ Page({
     commandQueue: [],
     isProcessingQueue: false,
     sendCommandInterval: null,
+    touchStartPosition: null, // 记录手指起始位置
+    lastVibrateTime: 0, // 用于记录上次振动时间
+    vibrateInterval: 15, // 设置振动间隔时间（毫秒）
   },
 
   onLoad() {
@@ -112,8 +115,15 @@ Page({
         this.handleJoystickMove(touch);
       } else if (touch.identifier === this.data.rightTouchId) {
         this.handleRightAreaMove(touch);
+      } else {
+        this.handleRightAreaStart(touch);
+        this.handleRightAreaMove(touch);
       }
     }
+    wx.vibrateShort({
+      type: "light",
+    });
+    // this.vibrateWithThrottle();
   },
 
   onTouchEnd(e) {
@@ -139,6 +149,7 @@ Page({
   resetAllTouches() {
     this.handleJoystickEnd();
     this.resetRightTouch();
+    this.handleRightAreaEnd();
   },
 
   resetRightTouch() {
@@ -237,25 +248,32 @@ Page({
   handleRightAreaStart(touch) {
     this.setData({
       rightTouchId: touch.identifier,
-      previousTouchPosition: { x: touch.clientX, y: touch.clientY },
+      touchStartPosition: { x: touch.clientX, y: touch.clientY }, // 记录起始位置
     });
   },
 
   handleRightAreaMove(touch) {
-    const deltaX = touch.clientX - this.data.previousTouchPosition.x;
-
+    const deltaX = touch.clientX - this.data.touchStartPosition.x; // 与起始位置的水平位移
     let rotationDirection = "none";
     let rotationSpeed = 0;
 
     if (deltaX !== 0) {
-      rotationDirection = deltaX > 0 ? "right" : "left";
-      rotationSpeed = Math.min(Math.abs(deltaX * 6), 100); // 放大 deltaX 以增大速度变化
+      const newDirection = deltaX > 0 ? "right" : "left";
+      // 当方向与上一次不同时触发振动
+      // if (newDirection !== this.data.rotationDirection && this.data.rotationDirection !== "none") {
+      //   wx.vibrateShort({
+      //     type: "heavy",
+      //   });
+      // }
+      rotationDirection = newDirection;
+      const maxDelta = 100; // 水平位移最大值
+      const limitedDeltaX = Math.min(Math.abs(deltaX), maxDelta);
+      rotationSpeed = Math.round((limitedDeltaX / maxDelta) * 100); // 映射为 0-100
     }
 
     this.setData({
       rotationDirection: rotationDirection,
       rotationSpeed: rotationSpeed,
-      previousTouchPosition: { x: touch.clientX, y: touch.clientY },
     });
 
     this.updateRightRotationDebug();
@@ -267,7 +285,7 @@ Page({
       rightTouchId: null,
       rotationDirection: "none",
       rotationSpeed: 0,
-      previousTouchPosition: null,
+      touchStartPosition: null, // 重置起始位置
     });
     this.updateRightRotationDebug();
   },
@@ -305,7 +323,7 @@ Page({
 
   setSpeedLevel(e) {
     wx.vibrateShort({
-      type: "light", // 使用轻度震动类型
+      type: "light",
     });
     const level = e.currentTarget.dataset.level;
     this.setData({ speedLevel: level });
@@ -315,7 +333,7 @@ Page({
 
   goBack: function () {
     wx.vibrateShort({
-      type: "light", // 使用轻度震动类型
+      type: "light",
     });
     ecBLE.closeBLEConnection();
     wx.navigateBack({
@@ -366,16 +384,6 @@ Page({
   },
 
   sendBluetoothCommand(command) {
-    // 检查命令数组的后 5 个元素是否全为 0
-    const isTailZero = command.slice(3).every(value => value === 0);
-
-    if (!isTailZero) {
-      // 如果后 5 个元素不全为 0，执行振动
-      wx.vibrateShort({
-        type: "light",
-      });
-    }
-
     // 将新命令添加到队列
     this.data.commandQueue.push(command);
 
@@ -451,5 +459,16 @@ Page({
       3
     );
     this.setData({ bluetoothDebugInfo: newInfo });
+  },
+
+  // 添加振动控制方法
+  vibrateWithThrottle(type = "light") {
+    const now = Date.now();
+    if (now - this.data.lastVibrateTime >= this.data.vibrateInterval) {
+      wx.vibrateShort({
+        type: type,
+      });
+      this.setData({ lastVibrateTime: now });
+    }
   },
 });

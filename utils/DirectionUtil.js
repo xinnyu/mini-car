@@ -187,7 +187,7 @@ class DirectionUtil {
       command[4] = 0x00; // 低字节
     } else {
       // 角度在 1-360，转换为高字节和低字节
-      command[3] = (angle >> 8) & 0xFF; // 高���节
+      command[3] = (angle >> 8) & 0xFF; // 高字节
       command[4] = angle & 0xFF;        // 低字节
     }
 
