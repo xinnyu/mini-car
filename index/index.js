@@ -126,9 +126,17 @@ Page({
   },
   onShareAppMessage() {
     return {
-      title: '海豹卖轮小车',
+      title: '海豹麦轮小车',
       path: '/index/index',
-      imageUrl: '/resource/mini-arm-icon.png'
-    };
+      imageUrl: '/resource/mini-car-logo-white.jpg',
+    }
+  },
+  onShareTimeline() {
+    return {
+      title: '海豹麦轮小车',
+      path: '/index/index',
+      imageUrl: '/resource/mini-car-logo-white.jpg',
+      query: ''
+    }
   },
 });
