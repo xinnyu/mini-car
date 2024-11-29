@@ -112,9 +112,18 @@ Page({
         const devices = this.data.devices;
         const idx = devices.findIndex(d => d.id === res.id);
         if (idx === -1) {
-          devices.push(res);
+          if (res.isCar) {
+            devices.unshift(res); // 将小车设备添加到列表前面
+          } else {
+            devices.push(res);
+          }
         } else {
           devices[idx] = res;
+          // 如果更新的设备是小车，确保它在列表前面
+          if (res.isCar && idx > 0) {
+            devices.splice(idx, 1);
+            devices.unshift(res);
+          }
         }
         this.setData({ devices });
       });
