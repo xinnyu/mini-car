@@ -22,6 +22,10 @@
       <view class="touch-indicator" wx:if="{{rightTouchPosition}}"
             style="left: {{rightTouchPosition.x}}px; top: {{rightTouchPosition.y}}px;">
       </view>
+      <!-- 添加滑动指示器 -->
+      <view class="swipe-indicator {{hideSwipeIndicator ? 'hidden' : ''}}">
+        ⇄ 此区域左右滑动可转动方向
+      </view>
     </view>
     
     <!-- 调试信息显示 -->

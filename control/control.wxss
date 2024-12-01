@@ -149,3 +149,38 @@
   z-index: 30;
   cursor: pointer;
 }
+
+/* 添加滑动指示器样式 */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 24px;
+  pointer-events: none;
+  animation: swipeAnimation 2s infinite;
+  opacity: 0.8;
+}
+
+.swipe-indicator.hidden {
+  display: none;
+}
+
+@keyframes swipeAnimation {
+  0% {
+    transform: translate(-80%, -50%);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-20%, -50%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-80%, -50%);
+    opacity: 0.3;
+  }
+}

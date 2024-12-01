@@ -31,6 +31,7 @@ Page({
     touchStartPosition: null, // 记录手指起始位置
     lastVibrateTime: 0, // 用于记录上次振动时间
     vibrateInterval: 15, // 设置振动间隔时间（毫秒）
+    hideSwipeIndicator: true,
   },
 
   onLoad() {
@@ -55,6 +56,11 @@ Page({
       this.updateBluetoothDebugInfo(data, false);
       this.setData({ textRevData: data });
     });
+
+    // 5秒后自动隐藏指示器
+    setTimeout(() => {
+      this.setData({ hideSwipeIndicator: true });
+    }, 5000);
   },
 
   onUnload() {
@@ -81,7 +87,8 @@ Page({
           safeArea: res.safeArea,
           screenWidth: screenWidth,
           screenHeight: screenHeight,
-          joystickReady: true, // 添加这行
+          joystickReady: true,
+          hideSwipeIndicator: false,
         });
         this.initJoystickRect();
       },
@@ -249,6 +256,7 @@ Page({
     this.setData({
       rightTouchId: touch.identifier,
       touchStartPosition: { x: touch.clientX, y: touch.clientY }, // 记录起始位置
+      hideSwipeIndicator: true, // 一旦用户触摸右侧区域，就隐藏指示器
     });
   },
 
