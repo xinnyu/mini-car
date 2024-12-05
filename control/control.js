@@ -32,6 +32,7 @@ Page({
     lastVibrateTime: 0, // 用于记录上次振动时间
     vibrateInterval: 15, // 设置振动间隔时间（毫秒）
     hideSwipeIndicator: true,
+    lastCommand: null, // 添加这行来记录最后一次发送的命令
   },
 
   onLoad() {
@@ -58,9 +59,9 @@ Page({
     });
 
     // 5秒后自动隐藏指示器
-    setTimeout(() => {
-      this.setData({ hideSwipeIndicator: true });
-    }, 5000);
+    // setTimeout(() => {
+    //   this.setData({ hideSwipeIndicator: true });
+    // }, 5000);
   },
 
   onUnload() {
@@ -462,10 +463,25 @@ Page({
   },
 
   updateBluetoothDebugInfo(message, isError = false) {
-    let newInfo = [{ message, isError }, ...this.data.bluetoothDebugInfo].slice(
-      0,
-      3
-    );
+    // 如果消息包含命令信息
+    if (message.includes('发送成功:')) {
+      const commandMatch = message.match(/发送成功: (\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+)/);
+      if (commandMatch) {
+        const currentCommand = commandMatch[1];
+        
+        // 检查是否是停止命令(后5位都是0)
+        const isStopCommand = currentCommand.split(',').slice(3).every(num => num === '0');
+        
+        // 如果是停止命令且与上一次命令相同，则不更新日志
+        if (isStopCommand && currentCommand === this.data.lastCommand) {
+          return;
+        }
+        // 更新最后发送的命令
+        this.setData({ lastCommand: currentCommand });
+      }
+    }
+
+    let newInfo = [{ message, isError }, ...this.data.bluetoothDebugInfo].slice(0, 3);
     this.setData({ bluetoothDebugInfo: newInfo });
   },
 

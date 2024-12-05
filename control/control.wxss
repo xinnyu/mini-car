@@ -16,8 +16,8 @@
 
 .joystick-area {
   position: absolute;
-  width: 160rpx;
-  height: 160rpx;
+  width: 180rpx;
+  height: 180rpx;
   z-index: 10;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
@@ -47,8 +47,8 @@
 }
 
 .joystick-stick {
-  width: 60rpx;
-  height: 60rpx;
+  width: 70rpx;
+  height: 70rpx;
   border-radius: 50%;
   background-color: #16213e;
   box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.5);
@@ -150,20 +150,24 @@
   cursor: pointer;
 }
 
-/* 添加滑动指示器样式 */
+/* 修改滑动指示器样式 */
 .swipe-indicator {
   position: absolute;
-  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 90rpx;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 24px;
+  font-size: 22rpx;
   pointer-events: none;
   animation: swipeAnimation 2s infinite;
   opacity: 0.8;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 12rpx 30rpx;
+  border-radius: 30rpx;
+  white-space: nowrap;
 }
 
 .swipe-indicator.hidden {
@@ -172,15 +176,15 @@
 
 @keyframes swipeAnimation {
   0% {
-    transform: translate(-80%, -50%);
+    transform: translateX(-70%);
     opacity: 0.3;
   }
   50% {
-    transform: translate(-20%, -50%);
+    transform: translateX(-20%);
     opacity: 0.8;
   }
   100% {
-    transform: translate(-80%, -50%);
+    transform: translateX(-70%);
     opacity: 0.3;
   }
 }
