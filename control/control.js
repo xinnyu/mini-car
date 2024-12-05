@@ -32,6 +32,7 @@ Page({
     lastVibrateTime: 0, // 用于记录上次振动时间
     vibrateInterval: 15, // 设置振动间隔时间（毫秒）
     hideSwipeIndicator: true,
+    hasShowSwipeIndicator: false,
     lastCommand: null, // 添加这行来记录最后一次发送的命令
   },
 
@@ -89,9 +90,14 @@ Page({
           screenWidth: screenWidth,
           screenHeight: screenHeight,
           joystickReady: true,
-          hideSwipeIndicator: false,
         });
         this.initJoystickRect();
+        if (!this.data.hasShowSwipeIndicator) {
+          this.setData({
+            hideSwipeIndicator: false,
+            hasShowSwipeIndicator: true
+          });
+        }
       },
     });
   },
