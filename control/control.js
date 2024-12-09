@@ -116,8 +116,7 @@ Page({
     for (let touch of e.touches) {
       if (this.isJoystickArea(touch) && this.data.joystickTouchId === null) {
         this.handleJoystickStart(touch);
-      } else if (!this.isJoystickArea(touch)) {
-        // 允许新的右侧触摸开始，使 rightTouchId 不为 null
+      } else if (this.isRightArea(touch)) {
         this.handleRightAreaStart(touch);
       }
     }
@@ -127,16 +126,24 @@ Page({
     for (let touch of e.changedTouches) {
       if (touch.identifier === this.data.joystickTouchId) {
         this.handleJoystickMove(touch);
+        wx.vibrateShort({
+          type: "light",
+        });
       } else if (touch.identifier === this.data.rightTouchId) {
         this.handleRightAreaMove(touch);
+        wx.vibrateShort({
+          type: "light",
+        });
       } else {
-        this.handleRightAreaStart(touch);
-        this.handleRightAreaMove(touch);
+        // if (this.isRightArea(touch)) {
+        //   this.handleRightAreaStart(touch);
+        //   this.handleRightAreaMove(touch);
+        //   wx.vibrateShort({
+        //     type: "light",
+        //   });
+        // }
       }
     }
-    wx.vibrateShort({
-      type: "light",
-    });
     // this.vibrateWithThrottle();
   },
 
@@ -322,6 +329,20 @@ Page({
         touch.clientX <= rect.right &&
         touch.clientY >= rect.top &&
         touch.clientY <= rect.bottom
+      );
+    }
+    return false;
+  },
+
+  isRightArea(touch) {
+    const rect = this.data.joystickRect;
+    if (rect) {
+      // 只有在手柄区域右边界以右的区域才返回true
+      return (
+        touch.clientX > rect.right + 20 && // 在手柄区域右侧
+        touch.clientX <= this.data.screenWidth && // 不超过屏幕右边界
+        touch.clientY >= 0 && // 在屏幕垂直范围内
+        touch.clientY <= this.data.screenHeight
       );
     }
     return false;
