@@ -76,6 +76,7 @@
 
 .left-debug {
   left: 20px;
+  display: none;
 }
 
 .right-debug {
@@ -113,6 +114,7 @@
 .speed-label {
   color: white;
   font-size: 14px;
+  font-weight: 500;
   margin-bottom: 5px;
 }
 
@@ -127,6 +129,7 @@
   padding: 10px 30px;
   color: white;
   font-size: 14px;
+  font-weight: 450;
   cursor: pointer;
   transition: background-color 0.3s;
 }
