@@ -339,7 +339,7 @@ Page({
     if (rect) {
       // 只有在手柄区域右边界以右的区域才返回true
       return (
-        touch.clientX > rect.right + 20 && // 在手柄区域右侧
+        touch.clientX > rect.right + 40 && // 在手柄区域右侧
         touch.clientX <= this.data.screenWidth && // 不超过屏幕右边界
         touch.clientY >= 0 && // 在屏幕垂直范围内
         touch.clientY <= this.data.screenHeight
