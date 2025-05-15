@@ -166,7 +166,9 @@ const onBluetoothDeviceFound = cb => {
             return
         }
         let isCar = false;
-        if (name.length === 15 && name.startsWith('BT_')) {
+        if (
+          (name.length === 15 && name.startsWith('BT_')) ||
+            name == "SealMWCar") {
           isCar = true;
         }
         let id = device.deviceId

@@ -55,7 +55,7 @@ Page({
         (true ? strHex.replace(/[0-9a-fA-F]{2}/g, " $&") : str) +
         "\r\n";
       log("receive data", data);
-      this.updateBluetoothDebugInfo(data, false);
+      // this.updateBluetoothDebugInfo(data, false);
       this.setData({ textRevData: data });
     });
 
